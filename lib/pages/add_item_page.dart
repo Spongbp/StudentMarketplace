@@ -197,7 +197,7 @@ class DescriptionField extends StatelessWidget {
 
 // Dropdown for selecting location
 class LocationDropdown extends StatelessWidget {
-  final List<String> locations = ["Abbotsford", "Richmond", "Kelowna", "Chilliwack"];
+  final List<String> locations = ["Abbotsford", "Mission", "Hope", "Chilliwack"];
   String? selectedLocation;
 
   @override

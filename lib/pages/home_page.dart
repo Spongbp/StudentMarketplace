@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../pages/saved_items_page.dart';
-import '../pages/campus_page.dart';
 import '../pages/add_item_page.dart';
 import '../pages/profile_page.dart';
 import '../pages/chat_page.dart';
+import '../pages/product_page.dart';
 
 class UFVHomePage extends StatefulWidget {
   @override
@@ -15,12 +15,18 @@ class _UFVHomePageState extends State<UFVHomePage> {
   final List<Map<String, String>> savedItems = [];
   final Set<String> savedItemNames = {}; // Track saved items by their names
   bool isSearching = false;
+  String selectedCampus = "Abbotsford"; // Default campus selection
 
-  void saveItem(Map<String, String> item) {
+  final List<String> campuses = ["Abbotsford", "Chilliwack", "Mission", "Hope"];
+
+  void toggleSaveItem(Map<String, String> item) {
     setState(() {
-      if (!savedItemNames.contains(item['name']!)) {
+      if (savedItemNames.contains(item['name']!)) {
+        savedItems.removeWhere((savedItem) => savedItem['name'] == item['name']);
+        savedItemNames.remove(item['name']!);
+      } else {
         savedItems.add(item);
-        savedItemNames.add(item['name']!); // Add item name to the saved set
+        savedItemNames.add(item['name']!);
       }
     });
   }
@@ -30,13 +36,10 @@ class _UFVHomePageState extends State<UFVHomePage> {
     Widget page;
     switch (selectedIndex) {
       case 0:
-        page = ProductListings(onSave: saveItem, savedItemNames: savedItemNames);
+        page = ProductListings(onToggleSave: toggleSaveItem, savedItemNames: savedItemNames);
         break;
       case 1:
         page = SavedItemsPage(savedItems: savedItems);
-        break;
-      case 2:
-        page = CampusPage();
         break;
       case 3:
         page = AddItemPage();
@@ -52,7 +55,7 @@ class _UFVHomePageState extends State<UFVHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: !isSearching
-            ? Text('Student Marketplace')
+            ? Text('Student Marketplace - $selectedCampus')
             : Padding(
           padding: const EdgeInsets.symmetric(horizontal: 1.0),
           child: TextField(
@@ -146,16 +149,6 @@ class _UFVHomePageState extends State<UFVHomePage> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.location_on, size: 28),
-              title: Text('Campus'),
-              onTap: () {
-                setState(() {
-                  selectedIndex = 2;
-                });
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
               leading: Icon(Icons.person, size: 28),
               title: Text('Profile'),
               onTap: () {
@@ -164,6 +157,36 @@ class _UFVHomePageState extends State<UFVHomePage> {
                 });
                 Navigator.pop(context);
               },
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                children: [
+                  Icon(Icons.location_on, size: 28),
+                  SizedBox(width: 15),
+                  Text(style: TextStyle(fontSize:16),'Campus:'),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      value: selectedCampus,
+                      onChanged: (String? newCampus) {
+                        if (newCampus != null) {
+                          setState(() {
+                            selectedCampus = newCampus;
+                          });
+                        }
+                      },
+                      items: campuses.map<DropdownMenuItem<String>>((String campus) {
+                        return DropdownMenuItem<String>(
+                          value: campus,
+                          child: Text(campus),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -182,10 +205,10 @@ class ProductListings extends StatelessWidget {
     {'name': 'Product 6', 'price': '\$35', 'image': 'https://via.placeholder.com/150'},
   ];
 
-  final Function(Map<String, String>) onSave;
+  final Function(Map<String, String>) onToggleSave;
   final Set<String> savedItemNames;
 
-  ProductListings({required this.onSave, required this.savedItemNames});
+  ProductListings({required this.onToggleSave, required this.savedItemNames});
 
   @override
   Widget build(BuildContext context) {
@@ -201,48 +224,58 @@ class ProductListings extends StatelessWidget {
         itemCount: products.length,
         itemBuilder: (context, index) {
           final product = products[index];
-          final isSaved = savedItemNames.contains(product['name']!); // Check if saved
-          return Card(
-            elevation: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: Image.network(
-                    product['image']!,
-                    fit: BoxFit.cover,
-                  ),
+          final isSaved = savedItemNames.contains(product['name']!);
+          return InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProductPage(product: product),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product['name']!,
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        product['price']!,
-                        style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                      ),
-                    ],
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: IconButton(
-                    icon: Icon(
-                      isSaved ? Icons.favorite : Icons.favorite_border,
-                      color: isSaved ? Colors.red : Colors.black,
+              );
+            },
+            child: Card(
+              elevation: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: Image.network(
+                      product['image']!,
+                      fit: BoxFit.cover,
                     ),
-                    onPressed: isSaved
-                        ? null // Disable button if already saved
-                        : () => onSave(product),
                   ),
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              product['name']!,
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              product['price']!,
+                              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                            ),
+                          ],
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            isSaved ? Icons.favorite : Icons.favorite_border,
+                            color: isSaved ? Colors.red : Colors.black,
+                          ),
+                          onPressed: () => onToggleSave(product),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
