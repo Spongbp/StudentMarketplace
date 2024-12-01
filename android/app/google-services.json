@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "836797500676",
+    "project_id": "ufv-student-marketplace",
+    "storage_bucket": "ufv-student-marketplace.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:836797500676:android:7f036aa7e52c14ac8bd451",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBchwjHJSEJbAWSxk-CyIpSrqp_oq1Z2dQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
